@@ -1,0 +1,185 @@
+--// Admin Panel GUI (LocalScript in StarterGui)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+
+-- ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.ResetOnSpawn = false
+
+-- Open Button
+local OpenButton = Instance.new("TextButton")
+OpenButton.Parent = ScreenGui
+OpenButton.Size = UDim2.new(0, 120, 0, 40)
+OpenButton.Position = UDim2.new(0, 10, 0.5, -20)
+OpenButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+OpenButton.TextColor3 = Color3.new(1, 1, 1)
+OpenButton.Text = "Open Admin"
+OpenButton.Font = Enum.Font.SourceSansBold
+OpenButton.TextSize = 20
+
+local UICornerOpen = Instance.new("UICorner")
+UICornerOpen.CornerRadius = UDim.new(0, 8)
+UICornerOpen.Parent = OpenButton
+
+-- Main Frame
+local Frame = Instance.new("Frame")
+Frame.Parent = ScreenGui
+Frame.Size = UDim2.new(0, 320, 0, 380)
+Frame.Position = UDim2.new(0.5, -160, 0.5, -190)
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Frame.Visible = false
+Frame.Active = true
+Frame.Draggable = true
+
+local UICornerFrame = Instance.new("UICorner")
+UICornerFrame.CornerRadius = UDim.new(0, 10)
+UICornerFrame.Parent = Frame
+
+-- Title Bar
+local TitleBar = Instance.new("TextLabel")
+TitleBar.Parent = Frame
+TitleBar.Size = UDim2.new(1, 0, 0, 40)
+TitleBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+TitleBar.Text = "Admin Panel"
+TitleBar.Font = Enum.Font.SourceSansBold
+TitleBar.TextColor3 = Color3.new(1, 1, 1)
+TitleBar.TextSize = 22
+
+local UICornerTitle = Instance.new("UICorner")
+UICornerTitle.CornerRadius = UDim.new(0, 10)
+UICornerTitle.Parent = TitleBar
+
+-- Close Button
+local CloseButton = Instance.new("TextButton")
+CloseButton.Parent = TitleBar
+CloseButton.Size = UDim2.new(0, 40, 0, 30)
+CloseButton.Position = UDim2.new(1, -45, 0.5, -15)
+CloseButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+CloseButton.TextColor3 = Color3.new(1, 1, 1)
+CloseButton.Text = "X"
+CloseButton.Font = Enum.Font.SourceSansBold
+CloseButton.TextSize = 18
+
+local UICornerClose = Instance.new("UICorner")
+UICornerClose.CornerRadius = UDim.new(0, 6)
+UICornerClose.Parent = CloseButton
+
+-- Credit Label
+local Credit = Instance.new("TextLabel")
+Credit.Parent = Frame
+Credit.Size = UDim2.new(1, 0, 0, 30)
+Credit.Position = UDim2.new(0, 0, 1, -30)
+Credit.BackgroundTransparency = 1
+Credit.Text = "Made by YiuSanNiun"
+Credit.Font = Enum.Font.SourceSansBold
+Credit.TextColor3 = Color3.fromRGB(200, 200, 200)
+Credit.TextSize = 18
+
+-- Feature states
+local noclipEnabled, espEnabled, speedEnabled = false, false, false
+
+-- Infinite Jump
+local function enableInfJump()
+    UserInputService.JumpRequest:Connect(function()
+        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum:ChangeState("Jumping") end
+    end)
+end
+enableInfJump()
+
+-- Invisible
+function toggleInvisible()
+    local char = LocalPlayer.Character
+    if char then
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                part.Transparency = part.Transparency == 1 and 0 or 1
+            end
+        end
+    end
+end
+
+-- Speed
+function toggleSpeed()
+    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if hum then
+        speedEnabled = not speedEnabled
+        hum.WalkSpeed = speedEnabled and 80 or 16
+    end
+end
+
+-- NoClip
+function toggleNoclip()
+    noclipEnabled = not noclipEnabled
+    RunService.Stepped:Connect(function()
+        if noclipEnabled and LocalPlayer.Character then
+            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+end
+
+-- ESP
+function toggleESP()
+    espEnabled = not espEnabled
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character then
+            local highlight = plr.Character:FindFirstChild("Highlight")
+            if espEnabled then
+                if not highlight then
+                    highlight = Instance.new("Highlight")
+                    highlight.Parent = plr.Character
+                    highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                end
+            else
+                if highlight then highlight:Destroy() end
+            end
+        end
+    end
+end
+
+-- Buttons
+local features = {
+    {"Infinite Jump", enableInfJump},
+    {"Invisible", toggleInvisible},
+    {"Speed Toggle", toggleSpeed},
+    {"NoClip", toggleNoclip},
+    {"ESP Toggle", toggleESP},
+}
+
+for i, data in ipairs(features) do
+    local btn = Instance.new("TextButton")
+    btn.Parent = Frame
+    btn.Size = UDim2.new(0, 260, 0, 35)
+    btn.Position = UDim2.new(0, 30, 0, 50 + (i-1)*45)
+    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Text = data[1]
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextSize = 20
+
+    local UICornerBtn = Instance.new("UICorner")
+    UICornerBtn.CornerRadius = UDim.new(0, 6)
+    UICornerBtn.Parent = btn
+
+    btn.MouseButton1Click:Connect(data[2])
+end
+
+-- Open / Close
+OpenButton.MouseButton1Click:Connect(function()
+    Frame.Visible = true
+    OpenButton.Visible = false
+end)
+
+CloseButton.MouseButton1Click:Connect(function()
+    Frame.Visible = false
+    OpenButton.Visible = true
+end)
